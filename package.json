@@ -26,6 +26,8 @@
     "@babel/core": "^7.9.0",
     "@babel/node": "^7.8.7",
     "@babel/preset-env": "^7.9.5",
+    "babel-plugin-import": "^1.13.0",
+    "babel-preset-env": "^1.7.0",
     "nodemon": "^2.0.3"
   }
 }
