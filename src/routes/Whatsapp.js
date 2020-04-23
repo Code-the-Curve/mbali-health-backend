@@ -1,5 +1,5 @@
 import express from 'express';
-import WhatsappBot from '../Whatsapp/WhatsappBot.js';
+import WhatsappBot from '../controllers/WhatsappBot.js';
 
 const routes = express.Router();
 
