@@ -1,10 +1,20 @@
 import express from 'express';
 import cors from 'cors';
+import mongoose from 'mongoose';
+
 import whatsapp from './routes/Whatsapp.js';
 
-
+const url = `mongodb://${process.env.MONGO_URI || 'mongo:27017'}/codethecurve`
 const PORT = process.env.HTTP_PORT || 8081;
 const app = express();
+
+mongoose.connect(url, {
+  useNewUrlParser: true,
+  useCreateIndex: true,
+  useFindAndModify: false
+})
+.then(() => console.log('DB connnection successful!'));
+
 
 app.use(cors());
 

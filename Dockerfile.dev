@@ -1,0 +1,6 @@
+FROM node:alpine3.10 
+
+EXPOSE 8081 
+WORKDIR /app 
+
+CMD [ "npm", "start" ]
