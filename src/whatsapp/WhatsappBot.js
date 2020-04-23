@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 import twilio from 'twilio';
+
+
 dotenv.config();
-
-
 
 twilio(process.env.SID, process.env.TOKEN);
 const {MessagingResponse} = twilio.twiml;

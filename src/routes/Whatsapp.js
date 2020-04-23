@@ -1,5 +1,5 @@
 import exress from 'express';
-import WhatsappBot from './WhatsappBot.js';
+import WhatsappBot from '../Whatsapp/WhatsappBot.js';
 
 const routes = exress.Router();
 
