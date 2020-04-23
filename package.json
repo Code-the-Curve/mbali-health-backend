@@ -12,7 +12,6 @@
     "start": "nodemon --exec babel-node src/server.js",
     "build:dev": "rm -rf dist && webpack --mode development --config webpack.config.js",
     "build:prod": "rm -rf dist && webpack --mode production --config webpack.config.js"
-    
   },
   "author": "",
   "license": "ISC",
@@ -20,6 +19,7 @@
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "mongoose": "^5.9.10",
     "twilio": "^3.42.2"
   },
   "devDependencies": {

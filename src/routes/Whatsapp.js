@@ -1,7 +1,7 @@
-import exress from 'express';
+import express from 'express';
 import WhatsappBot from '../Whatsapp/WhatsappBot.js';
 
-const routes = exress.Router();
+const routes = express.Router();
 
 routes.post('/incoming_whatsapp', WhatsappBot.welcomePatient);
 
