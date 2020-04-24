@@ -13,8 +13,19 @@ export const OrganizationModel = mongoose.model('Organization', {
 	}
 });
 
+const Roles = Object.freeze({
+    MedicalOfficer: 'Medical Officer',
+    ClinicalOfficer: 'Clinical Officer',
+    Nurse: 'Nurse',
+    Specialist: 'Specialist',
+    OfficeStaff : "Office Staff",
+})
+
 export const RoleModel = mongoose.model('role', {
-    name: String, //Doctor, clinical Officer, Nurse, etc
+    name: {
+        type: String,
+        enum: Object.values(Roles)
+    },
 	description : String
 });
 
@@ -26,7 +37,10 @@ export const PractitionerModel = mongoose.model('practitioner', {
 	},
 	organization : ObjectId,
 	phone_number : String,
-	role : ObjectId //this could also be an embeded object  
+	role :  {
+        name: integer, //Doctor, Clinical Officer, Nurse, etc
+	    description : String
+    }
 });
 
 export const PatientModel = mongoose.model('patient', {
@@ -35,11 +49,12 @@ export const PatientModel = mongoose.model('patient', {
         last_name : String
     },
     phone_number: String,
-    registered_ts : DateTime
+    organization : ObjectId,
+    registered_ts : { type: Date, default: Date.now }
 });
 
 export const ConsultationModel = mongoose.model('consultation', {
-    accepted_timestamp : DateTime,
+    accepted_timestamp : { type: Date, default: Date.now },
 	practitioner : ObjectId,
 	organization : ObjectId, //Somewhat breaking SSoT here, but it's going to be very expensive to query for all messages for an organization if we don't include
 	patient : ObjectId,
@@ -53,7 +68,6 @@ export const MessageModel = mongoose.model('message', {
     to: ObjectId,
     from: ObjectId, 
     source_message : ObjectId,
-
     content: {
         message: String
     }
