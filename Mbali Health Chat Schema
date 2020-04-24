@@ -1,0 +1,77 @@
+// Mbali Health Chat Schema
+
+// Note that in the production version of this app, administration will be handled by a different module (probably written in Java), so all admin modules are intentionally minimal
+
+{
+	"resourceType" : "Organzation",
+	"_id" : ObjectId,
+	"name" : String,
+	"phone_number" : String,
+	"location" {
+		"description" : String
+		"address" : String,
+		"city" : String,
+		"county": County,
+		"lat" : Decminal,
+		"long" : Decimal
+	}
+}
+
+{
+	"resourceType" : "Role",	
+	"_id": ObjectId,
+	"name": String, //Doctor, clinical Officer, nurse, etc
+	"description" : String
+}
+
+{
+	"resourceType" : "Practitioner",
+	"_id" : ObjectId,
+	'name' : {
+		"first_name" : String.
+		"last_name" : String,
+		"prefix" : String
+	}
+	"organization" : ObjectId,
+	"phone_number" : String,
+	"role" : ObjectId //this could also be an embeded object  
+}
+
+{
+	"resourceType" : "Patient",
+	"_id" : ObjectId,
+	'name' : {
+		"first_name" : String.
+		"last_name" : String,
+	},
+	"phone_number" : phone_number,
+	"registered_timestamp" : DateTime
+}
+
+{
+	"resourceType" : "Message",
+	"_id" : ObjectId,
+	"content" : String,
+	"sent_timestamp" : DateTime,
+	"received_timestamp" : DateTime,
+	"to" : ObjectId,
+	"from" : ObjectId,
+	"source_message" : ObjectId
+}
+
+{
+	"resourceType" : "Consultation",
+	"_id" : ObjectId,
+	"accepted_timestamp" : DateTime,
+	"practitioner" : ObjectId,
+	"organization" : ObjectId, //Somewhat breaking SSoT here, but it's going to be very expensive to query for all messages for an organization if we don't include
+	"patient" : ObjectId,
+	"active" : Boolean
+	"messages" [Messages]
+}
+
+{
+	"resourceType" : "Message",
+	"_id" : ObjectId,
+	//Fields to be filled in from 
+}
