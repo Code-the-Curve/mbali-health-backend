@@ -4,7 +4,7 @@ import {PractitionerModel} from '../models/index.js';
 import {ConsultationModel} from '../models/index.js';
 
 // todo do we need to connect to mongo here too like in the server?
-//todo error check the input ex if patient doesnt exist
+//todo error check the input ex if patient doesnt exist or missing body components
 
 /*
 API:
@@ -36,11 +36,12 @@ class Registration {
     try {
       const orgId = req.body.organization;
       const patientId = req.body.patient;
-      const patient = this.findDocFromId(patientId, PatientModel);
-      res.set('Content-Type', 'text/plain');
-      patient.organization = orgId;
-      this.defaultDocSave(patient);
-      return res.status(200).send(`patient with id ${patientId} successfully updated with org id ${orgId}`);
+      res.set('Content-Type', 'application/json'); // TODO UPDATE REST
+      Registration.findDocFromId(patientId, PatientModel, (patient) => {
+        patient.organization = orgId;
+        Registration.defaultDocSave(patient); // todo technically all calls to defaultDocSave should also be nested...
+        return res.status(200).send(`{"patient": ${patient}}`);
+      });
     } catch (error) {
       return next(error);
     }
@@ -50,17 +51,19 @@ class Registration {
   static deregisterPatientOrg(req, res, next) {
     try {
       const patientId = req.body.patient;
-      const patient = this.findDocFromId(patientId, PatientModel);
-      const consultation = this.findActiveConsultation(patientId);
-      res.set('Content-Type', 'text/plain');
-      patient.organization = null;
-      this.defaultDocSave(patient);
-      if (consultation != null) {
-        consultation.active = false;
-        this.defaultDocSave(consultation);
-        return res.status(200).send(`patient with id ${patientId} was deregistered from an org (if any) and consultation with id ${consultation.id} was set to inactive.`);
-      }
-      return res.status(200).send(`patient with id ${patientId} was deregistered from an org (if any)`);
+      res.set('Content-Type', 'application/json');
+      Registration.findDocFromId(patientId, PatientModel, (patient) => {
+        patient.organization = null;
+        Registration.defaultDocSave(patient);
+        Registration.findActiveConsultation(patientId, null, (consultation) => {
+          if (consultation != null) {
+            consultation.active = false;
+            Registration.defaultDocSave(consultation);
+            return res.status(200).send(`{"patient": ${patient}, "consultation": ${consultation}}`);
+          }
+          return res.status(200).send(`{"patient": ${patient}}`);
+        });
+      });
     } catch (error) {
       return next(error);
     }
@@ -70,28 +73,28 @@ class Registration {
     try {
       const patientId = req.body.patient;
       const practitionerId = req.body.practitioner;
-      const consultation = this.findActiveConsultation(patientId);
-      res.set('Content-Type', 'text/plain');
-
-      if (consultation == null) {
-        const orgId = this.findOrgIdFromPractitionerId(practitionerId);
-        const newConsultation = ConsultationModel({
-          'practitioner' : practitionerId,
-          'organization' : orgId,
-          'patient' : patientId,
-          'active' : true,
-          'messages' : []
-        });
-        this.defaultDocSave(newConsultation);
-        return res.status(200).send(`consultation with id ${newConsultation.id} created for patient id ${patientId}, practitioner id ${practitionerId}`);
-      } else if (consultation.practitioner == null) {
-        consultation.practitioner = practitionerId;
-        this.defaultDocSave(consultation);
-        return res.status(200).send(`consultation with id ${consultation.id} updated for patient id ${patientId}, practitioner id ${practitionerId}`);
-      } else { // an active consultation exists, practitioner not null => patient already has practitioner
-        return res.status(400).send(`Bad request: patient with id ${patientId} is already registered with practitioner id ${consultation.practitioner} on active consultation id ${consultation.id}. No updates were performed.`);
-      }
-
+      res.set('Content-Type', 'application/json');
+      Registration.findActiveConsultation(patientId, null, (consultation) => {
+          Registration.findOrgIdFromPractitionerId(practitionerId, (orgId) => {
+            if (consultation == null) {
+              const newConsultation = ConsultationModel({
+                'practitioner' : practitionerId,
+                'organization' : orgId,
+                'patient' : patientId,
+                'active' : true
+                // 'messages' : []
+              });
+              Registration.defaultDocSave(newConsultation);
+              return res.status(200).send(`{"consultation": ${newConsultation}}`);
+            } else if (consultation.practitioner == null) {
+              consultation.practitioner = practitionerId;
+              Registration.defaultDocSave(consultation);
+              return res.status(200).send(`{"consultation": ${consultation}}`);
+            } else { // an active consultation exists, practitioner not null => patient already has practitioner
+              return res.status(400).send(`{"error": "Bad request: patient with id ${patientId} is already registered with practitioner id ${consultation.practitioner} on active consultation id ${consultation.id}. No updates were performed."}`);
+            }
+          });
+      });
     } catch (error) {
       return next(error);
     }
@@ -102,19 +105,17 @@ class Registration {
   static deregisterPatientPractitioner(req, res, next) {
     try {
       const patientId = req.body.patient;
-      //todo check what happens when accessing non existent field in body
       const practitionerId = req.body.practitioner; // optional, only set if coming from practitioner/socket side
-      const consultation = this.findActiveConsultation(patientId, practitionerId);
-      res.set('Content-Type', 'text/plain');
-
-      if (consultation != null && consultation.practitioner != null) {
-        consultation.active = false;
-        this.defaultDocSave(consultation);
-        return res.status(200).send(`consultation with id ${consultation.id} set to inactive, patient id ${patientId}, practitioner id ${practitionerId}`);
-      } else {
-        return res.status(200).send('patient was not registered to practitioner. No updates performed.');
-      }
-
+      res.set('Content-Type', 'application/json');
+      Registration.findActiveConsultation(patientId, practitionerId, (consultation) => {
+        if (consultation != null && consultation.practitioner != null) {
+          consultation.active = false;
+          Registration.defaultDocSave(consultation);
+          return res.status(200).send(`{"consultation": ${consultation}}`);
+        } else {
+          return res.status(200).send('{"message": "patient was not registered to practitioner. No updates performed."}');
+        }
+      });
     } catch (error) {
       return next(error);
     }
@@ -123,37 +124,37 @@ class Registration {
   // helper methods
 
   // not for this controller...
-  static findPatientFromPhone(phoneNumber,idOnly= false) {
-    return PatientModel.findOne({phone_number: phoneNumber}, (err, patient) => {
+  static findPatientFromPhone(phoneNumber, idOnly, next) {
+    PatientModel.findOne({phone_number: phoneNumber}, (err, patient) => {
       // if(err) throw err;
       if (idOnly) {
-        return patient.id;
+        next(patient.id);
       }
-      return patient;
+      next(patient);
     })
   }
 
-  static findDocFromId(id, model) {
-    return model.findById(id, (err, doc) => {
+  static findDocFromId(id, model, next) {
+    model.findById(id, (err, doc) => {
       //  todo if err do something
-      return doc;
+      next(doc);
     });
   }
 
-  static findActiveConsultation(patientId, practitionerId = null) {
+  static findActiveConsultation(patientId, practitionerId, next) {
     const query = practitionerId == null ? { patient: patientId, active: true} : { patient: patientId, practitioner: practitionerId, active: true}
-    return ConsultationModel.findOne(query,
+    ConsultationModel.findOne(query,
         "organization practitioner active patient",
         function (err, consultation) {
           // if (err) return throw err;
-          return consultation;
+          next(consultation);
         });
   }
 
-  static findOrgIdFromPractitionerId(practitionerId) {
-    return PractitionerModel.findById(practitionerId, (err, practitioner) => {
+  static findOrgIdFromPractitionerId(practitionerId, next) {
+    PractitionerModel.findById(practitionerId, (err, practitioner) => {
       // if (err) return throw err;
-      return practitioner.organization;
+      next(practitioner.organization);
     });
   }
 
