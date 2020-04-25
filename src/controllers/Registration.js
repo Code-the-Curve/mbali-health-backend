@@ -1,9 +1,8 @@
-// import mongoose from 'mongoose';
 import {PatientModel} from '../models/index.js';
 import {PractitionerModel} from '../models/index.js';
 import {ConsultationModel} from '../models/index.js';
+import Api from './Api'
 
-// todo do we need to connect to mongo here too like in the server?
 //todo error check the input ex if patient doesnt exist or missing body components
 // todo return 500 on other errors?
 /*
@@ -57,11 +56,11 @@ class Registration {
       Registration.findDocFromId(patientId, PatientModel, (patient) => {
         patient.organization = orgId;
         Registration.defaultDocSave(patient, () => {
-          return res.status(200).send({ patient });
+          return Api.okWithContent(res,{ patient });
         }); // todo technically all calls to defaultDocSave should also be nested...
       });
     } catch (error) {
-      return res.status(500).send(`{"error": ${error.message}`);
+      return Api.errorWithMessage(res, 500, error.message)
     }
   }
 
@@ -69,25 +68,29 @@ class Registration {
   static deregisterPatientOrg(req, res, next) {
     try {
       const patientId = req.body.patient;
+      const orgId = req.body.organization;
       res.set('Content-Type', 'application/json');
       Registration.findDocFromId(patientId, PatientModel, (patient) => {
+        if (patient.organization != orgId) {
+          return Api.errorWithMessage(res, 400, `patient id ${patientId} was not registered with organization ${orgId}`)
+        }
         patient.organization = null;
         Registration.defaultDocSave(patient, () => {
           Registration.findActiveConsultation(patientId, null, (consultation) => {
             if (consultation != null) {
               consultation.active = false;
               Registration.defaultDocSave(consultation, () => {
-                return res.status(200).send(`{"patient": ${patient}, "consultation": ${consultation}}`);
+                return Api.okWithContent(res, `{"patient": ${patient}, "consultation": ${consultation}}`);
               });
             } else {
-              return res.status(200).send({ patient });
+              return Api.okWithContent(res,{ patient });
             }
           });
         });
 
       });
     } catch (error) {
-      return res.status(500).send(`{"error": ${error.message}`);
+      return Api.errorWithMessage(res, 500, error.message)
     }
   }
 
@@ -105,23 +108,22 @@ class Registration {
                 'organization' : orgId,
                 'patient' : patientId,
                 'active' : true
-                // 'messages' : []
               });
               Registration.defaultDocSave(newConsultation, () => {
-                return res.status(200).send(`{"consultation": ${newConsultation}}`);
+                return Api.okWithContent(res, `{"consultation": ${newConsultation}}`);
               });
             } else if (consultation.practitioner == null) {
               consultation.practitioner = practitionerId;
               Registration.defaultDocSave(consultation, () => {
-                return res.status(200).send({ consultation });
+                return Api.okWithContent(res, { consultation });
               });
             } else { // an active consultation exists, practitioner not null => patient already has practitioner
-              return res.status(400).send(`{"error": "Bad request: patient with id ${patientId} is already registered with practitioner id ${consultation.practitioner} on active consultation id ${consultation.id}. No updates were performed."}`);
+              return Api.errorWithMessage(res, 400, `Bad request: patient with id ${patientId} is already registered with practitioner id ${consultation.practitioner} on active consultation id ${consultation.id}. No updates were performed.`)
             }
           });
       });
     } catch (error) {
-      return res.status(500).send(`{"error": ${error.toString()}`);
+      return Api.errorWithMessage(res, 500, error.message)
     }
   }
 
@@ -136,14 +138,14 @@ class Registration {
         if (consultation != null && consultation.practitioner != null) {
           consultation.active = false;
           Registration.defaultDocSave(consultation, () => {
-            return res.status(200).send({ consultation });
+            return Api.okWithContent(res, { consultation });
           });
         } else {
-          return res.status(200).send('{"message": "patient was not registered to practitioner. No updates performed."}');
+          return Api.okWithContent(res,'{"message": "patient was not registered to practitioner. No updates performed."}');
         }
       });
     } catch (error) {
-      return res.status(500).send(`{"error": ${error.message}`);
+      return Api.errorWithMessage(res, 500, error.message)
     }
   }
 
