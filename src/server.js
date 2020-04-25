@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 import http from 'http';
 import socket from 'socket.io';
 
-import whatsapp from './routes/Whatsapp.js';
+import whatsAppRouter from './routes/Whatsapp.js';
 import wscontroller from './controllers/WebsocketController.js';
 import registration from './routes/Registration.js';
 import deregistration from './routes/Deregistration';
