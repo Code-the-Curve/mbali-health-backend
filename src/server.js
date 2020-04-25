@@ -7,6 +7,9 @@ import socket from 'socket.io';
 
 import whatsapp from './routes/Whatsapp.js';
 import wscontroller from './controllers/WebsocketController.js';
+import registration from './routes/Registration.js';
+//todo test only
+import TestDataCreator from "./controllers/TestDataCreator";
 
 const url = `mongodb://${process.env.MONGO_URI || 'mongo:27017'}/codethecurve`
 const PORT = process.env.HTTP_PORT || 8081;
@@ -33,6 +36,10 @@ app.use(express.json());
 
 // Routes
 app.use(whatsapp);
+//todo test only
+// TestDataCreator.createTestData()
+app.use(registration);
+
 
 const server = http.createServer(app).listen(PORT, () => {
   console.log(`Server listening at port ${PORT}.`);
