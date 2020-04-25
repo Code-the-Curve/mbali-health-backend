@@ -16,11 +16,17 @@ class WebsocketController {
 
   static handleMessageReceived(client, data) {
     const { room, message } = data;
+    
+    console.log(`${client.id} sent "${message}" to ${room}`);
 
-    console.log(`${client.id} sent /${message}/ to ${room}`);
-  
-    const res =  {...data, from: client.id}
-    rooms[room].forEach(c => { c.emit('message', res) })
+    this.sendMessageToRoom(room, {message, from: client.id});
+  }
+
+  static sendMessageToRoom(room, data) {
+    if (room in rooms) {
+      console.log(`Sending "${data.message}" from "${data.from}" to room "${room}"`)
+      rooms[room].forEach(c => { c.emit('message', data) });
+    }
   }
 }
 
