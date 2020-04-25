@@ -64,7 +64,6 @@ class Registration {
     }
   }
 
-  // todo right now this is "org ignorant". Do we want to check which org patient is deregistering from?
   static deregisterPatientOrg(req, res, next) {
     try {
       const patientId = req.body.patient;
@@ -94,32 +93,28 @@ class Registration {
     }
   }
 
-  // todo check that pract belongs to correct org
   static registerPatientPractitioner(req, res, next) {
     try {
       const patientId = req.body.patient;
       const practitionerId = req.body.practitioner;
       res.set('Content-Type', 'application/json');
       Registration.findActiveConsultation(patientId, null, (consultation) => {
-          Registration.findOrgIdFromPractitionerId(practitionerId, (orgId) => {
-            if (consultation == null) {
-              const newConsultation = ConsultationModel({
-                'practitioner' : practitionerId,
-                'organization' : orgId,
-                'patient' : patientId,
-                'active' : true
-              });
-              Registration.defaultDocSave(newConsultation, () => {
-                return Api.okWithContent(res, `{"consultation": ${newConsultation}}`);
-              });
-            } else if (consultation.practitioner == null) {
-              consultation.practitioner = practitionerId;
-              Registration.defaultDocSave(consultation, () => {
-                return Api.okWithContent(res, { consultation });
-              });
-            } else { // an active consultation exists, practitioner not null => patient already has practitioner
-              return Api.errorWithMessage(res, 400, `Bad request: patient with id ${patientId} is already registered with practitioner id ${consultation.practitioner} on active consultation id ${consultation.id}. No updates were performed.`)
-            }
+          Registration.findOrgIdFromPractitionerId(practitionerId, (practOrgId) => {
+            Registration.findDocFromId(patientId, PatientModel, (patient) => {
+              if (patient.organization != practOrgId.toString()) {
+                return Api.errorWithMessage(res, 400, `patient org id ${patient.organization} does not match practitioner org id ${practOrgId}`)
+              } else if (consultation == null) {
+                return Api.errorWithMessage(res, 400, 'patient had no waiting room consultation.')
+              } else if (consultation.practitioner == null) {
+                consultation.practitioner = practitionerId;
+                Registration.defaultDocSave(consultation, () => {
+                  return Api.okWithContent(res, { consultation });
+                });
+              } else { // an active consultation exists, practitioner not null => patient already has practitioner
+                return Api.errorWithMessage(res, 400, `Bad request: patient with id ${patientId} is already registered with practitioner id ${consultation.practitioner} on active consultation id ${consultation.id}. No updates were performed.`)
+              }
+            })
+
           });
       });
     } catch (error) {
