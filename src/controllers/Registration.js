@@ -56,8 +56,9 @@ class Registration {
       res.set('Content-Type', 'application/json'); // TODO UPDATE REST
       Registration.findDocFromId(patientId, PatientModel, (patient) => {
         patient.organization = orgId;
-        Registration.defaultDocSave(patient); // todo technically all calls to defaultDocSave should also be nested...
-        return res.status(200).send(`{"patient": ${patient}}`);
+        Registration.defaultDocSave(patient, () => {
+          return res.status(200).send(`{"patient": ${patient}}`);
+        }); // todo technically all calls to defaultDocSave should also be nested...
       });
     } catch (error) {
       return next(error);
@@ -71,21 +72,25 @@ class Registration {
       res.set('Content-Type', 'application/json');
       Registration.findDocFromId(patientId, PatientModel, (patient) => {
         patient.organization = null;
-        Registration.defaultDocSave(patient);
-        Registration.findActiveConsultation(patientId, null, (consultation) => {
-          if (consultation != null) {
-            consultation.active = false;
-            Registration.defaultDocSave(consultation);
-            return res.status(200).send(`{"patient": ${patient}, "consultation": ${consultation}}`);
-          }
-          return res.status(200).send(`{"patient": ${patient}}`);
+        Registration.defaultDocSave(patient, () => {
+          Registration.findActiveConsultation(patientId, null, (consultation) => {
+            if (consultation != null) {
+              consultation.active = false;
+              Registration.defaultDocSave(consultation, () => {
+                return res.status(200).send(`{"patient": ${patient}, "consultation": ${consultation}}`);
+              });
+            }
+            return res.status(200).send(`{"patient": ${patient}}`);
+          });
         });
+
       });
     } catch (error) {
       return next(error);
     }
   }
 
+  // todo check that pract belongs to correct org
   static registerPatientPractitioner(req, res, next) {
     try {
       const patientId = req.body.patient;
@@ -101,12 +106,14 @@ class Registration {
                 'active' : true
                 // 'messages' : []
               });
-              Registration.defaultDocSave(newConsultation);
-              return res.status(200).send(`{"consultation": ${newConsultation}}`);
+              Registration.defaultDocSave(newConsultation, () => {
+                return res.status(200).send(`{"consultation": ${newConsultation}}`);
+              });
             } else if (consultation.practitioner == null) {
               consultation.practitioner = practitionerId;
-              Registration.defaultDocSave(consultation);
-              return res.status(200).send(`{"consultation": ${consultation}}`);
+              Registration.defaultDocSave(consultation, () => {
+                return res.status(200).send(`{"consultation": ${consultation}}`);
+              });
             } else { // an active consultation exists, practitioner not null => patient already has practitioner
               return res.status(400).send(`{"error": "Bad request: patient with id ${patientId} is already registered with practitioner id ${consultation.practitioner} on active consultation id ${consultation.id}. No updates were performed."}`);
             }
@@ -127,8 +134,9 @@ class Registration {
       Registration.findActiveConsultation(patientId, practitionerId, (consultation) => {
         if (consultation != null && consultation.practitioner != null) {
           consultation.active = false;
-          Registration.defaultDocSave(consultation);
-          return res.status(200).send(`{"consultation": ${consultation}}`);
+          Registration.defaultDocSave(consultation, () => {
+            return res.status(200).send(`{"consultation": ${consultation}}`);
+          });
         } else {
           return res.status(200).send('{"message": "patient was not registered to practitioner. No updates performed."}');
         }
@@ -175,9 +183,10 @@ class Registration {
     });
   }
 
-  static defaultDocSave(document) {
+  static defaultDocSave(document, next) {
     document.save((err) => {
       if (err) throw err;
+      next();
     });
   }
 
