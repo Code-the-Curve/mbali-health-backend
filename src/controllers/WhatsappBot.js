@@ -23,7 +23,6 @@ class WhatsappBot {
       return next(error);
     }
   }
-
 }
 
 export default WhatsappBot;

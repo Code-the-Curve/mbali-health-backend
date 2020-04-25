@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 
-import whatsapp from './routes/Whatsapp.js';
+import whatsAppRouter from './routes/Whatsapp.js';
 
 const url = `mongodb://${process.env.MONGO_URI || 'mongo:27017'}/codethecurve`
 const PORT = process.env.HTTP_PORT || 8081;
@@ -26,7 +26,7 @@ app.use(
 
 app.use(express.json());
 
-app.use(whatsapp);
+app.use("/messaging/whatsapp", whatsAppRouter);
 
 app.get('/', (req, res) => {
   res.send('just gonna send it');

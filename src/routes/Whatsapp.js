@@ -1,8 +1,8 @@
 import express from 'express';
 import WhatsappBot from '../controllers/WhatsappBot.js';
 
-const routes = express.Router();
+const router = express.Router();
 
-routes.post('/incoming_whatsapp', WhatsappBot.welcomePatient);
+router.post('/incoming', WhatsappBot.welcomePatient);
 
-export default routes;
+export default router;
