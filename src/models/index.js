@@ -1,19 +1,20 @@
 import mongoose from 'mongoose'
 
-export const OrganizationModel = mongoose.model('Organization', {
+
+export const OrganizationModel = mongoose.model('organization', {
     name : String,
 	phone_number : String,
 	location: {
 		description : String,
 		address : String,
 		city : String,
-		county: County,
-		lat : Decminal,
-		long : Decimal
+		county: String,
+		lat : mongoose.Types.Decimal128,
+		long : mongoose.Types.Decimal128
 	}
 });
 
-const Roles = Object.freeze({
+export const Roles = Object.freeze({
     MedicalOfficer: 'Medical Officer',
     ClinicalOfficer: 'Clinical Officer',
     Nurse: 'Nurse',
@@ -35,10 +36,13 @@ export const PractitionerModel = mongoose.model('practitioner', {
 		last_name : String,
 		prefix : String
 	},
-	organization : ObjectId,
+	organization : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Organization'
+    },
 	phone_number : String,
 	role :  {
-        name: integer, //Doctor, Clinical Officer, Nurse, etc
+        name: Number, //Doctor, Clinical Officer, Nurse, etc
 	    description : String
     }
 });
@@ -49,26 +53,46 @@ export const PatientModel = mongoose.model('patient', {
         last_name : String
     },
     phone_number: String,
-    organization : ObjectId,
+    organization : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Organization',
+        default: null
+    },
     registered_ts : { type: Date, default: Date.now }
 });
 
-export const ConsultationModel = mongoose.model('consultation', {
-    accepted_timestamp : { type: Date, default: Date.now },
-	practitioner : ObjectId,
-	organization : ObjectId, //Somewhat breaking SSoT here, but it's going to be very expensive to query for all messages for an organization if we don't include
-	patient : ObjectId,
-	active : Boolean,
-	messages : [MessageModel]
-});
-
-export const MessageModel = mongoose.model('message', {
+const MessageSchema = mongoose.Schema({
     sent_ts: Date,
     received_ts: Date,
-    to: ObjectId,
-    from: ObjectId, 
-    source_message : ObjectId,
+    to: mongoose.Schema.Types.ObjectId, // no ref checking because can be patient or practitioner
+    from: mongoose.Schema.Types.ObjectId, // no ref checking because can be patient or practitioner
+    source_message : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'message',
+        default: null
+    },
     content: {
         message: String
     }
-})
+});
+
+export const MessageModel = mongoose.model('message', MessageSchema);
+
+export const ConsultationModel = mongoose.model('consultation', {
+    accepted_timestamp : { type: Date, default: Date.now },
+    practitioner : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'practitioner',
+        default: null
+    },
+    organization : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'organization',
+    }, //Somewhat breaking SSoT here, but it's going to be very expensive to query for all messages for an organization if we don't include
+    patient : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'patient'
+    },
+    active : Boolean,
+    messages : [MessageSchema]
+});
