@@ -5,29 +5,46 @@ import {ConsultationModel} from '../models/index.js';
 
 // todo do we need to connect to mongo here too like in the server?
 //todo error check the input ex if patient doesnt exist or missing body components
-
+// todo return 500 on other errors?
 /*
 API:
-post to '/register_patient_org'
+* everything returns 200 for success (or no action taken).
+* post to '/register_patient_org'
+    body = {
+      "organization": "String, org id",
+      "patient": "String, patient id"
+    }
+    returns: {"patient": PatientModel}
+* post to '/deregister_patient_org'
   body = {
-    "organization": "String, org id",
     "patient": "String, patient id"
   }
-post to '/deregister_patient_org'
-  body = {
-    "patient": "String, patient id"
-  }
-post to '/register_patient_practitioner'
+  returns:
+    - if there was no active consultation:
+      {"patient": PatientModel}
+    - else:
+      {"patient": PatientModel, "consultation": ConsultationModel}
+
+* post to '/register_patient_practitioner'
   body = {
     "patient": "String, patient id",
     "practitioner": "String, practitioner id"
-
   }
-post to '/deregister_patient_practitioner'
+  returns:
+    - if patient NOT already registered to a practitioner:
+      {"consultation": ConsultationModel}
+    - STATUS 400, {"error": "Bad request: patient with id ${patientId} is already registered with practitioner id ${consultation.practitioner} on active consultation id ${consultation.id}. No updates were performed."}
+
+* post to '/deregister_patient_practitioner'
   body = {
     "patient": "String, patient id",
     "practitioner": "String, practitioner id, optional -> set if coming from practitioner/socket side"
   }
+  returns:
+    - if patient had active consultation with practitioner:
+    - {"consultation": ConsultationModel}
+    - else:
+      {"message": "patient was not registered to practitioner. No updates performed."}
  */
 
 class Registration {
