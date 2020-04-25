@@ -9,13 +9,13 @@ import {ConsultationModel} from '../models/index.js';
 /*
 API:
 * everything returns 200 for success (or no action taken).
-* post to '/register_patient_org'
+* post to '/register/patient_org'
     body = {
       "organization": "String, org id",
       "patient": "String, patient id"
     }
     returns: {"patient": PatientModel}
-* post to '/deregister_patient_org'
+* post to '/deregister/patient_org'
   body = {
     "patient": "String, patient id"
   }
@@ -25,7 +25,7 @@ API:
     - else:
       {"patient": PatientModel, "consultation": ConsultationModel}
 
-* post to '/register_patient_practitioner'
+* post to '/register/patient_practitioner'
   body = {
     "patient": "String, patient id",
     "practitioner": "String, practitioner id"
@@ -35,7 +35,7 @@ API:
       {"consultation": ConsultationModel}
     - STATUS 400, {"error": "Bad request: patient with id ${patientId} is already registered with practitioner id ${consultation.practitioner} on active consultation id ${consultation.id}. No updates were performed."}
 
-* post to '/deregister_patient_practitioner'
+* post to '/deregister/patient_practitioner'
   body = {
     "patient": "String, patient id",
     "practitioner": "String, practitioner id, optional -> set if coming from practitioner/socket side"
