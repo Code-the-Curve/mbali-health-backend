@@ -14,6 +14,7 @@ import deregistration from './routes/Deregistration';
 
 //todo test only
 import TestDataCreator from "./controllers/TestDataCreator";
+import whatsAppRouter from './routes/Whatsapp.js';
 
 const url = `mongodb://${process.env.MONGO_URI || 'mongo:27017'}/codethecurve`
 const PORT = process.env.HTTP_PORT || 8081;
@@ -45,6 +46,7 @@ app.use("/messaging/whatsapp", whatsAppRouter);
 app.use('/register',registration);
 app.use('/deregister',deregistration);
 app.use('/consultation', messages);
+app.use("/messaging/whatsapp", whatsAppRouter);
 
 const server = http.createServer(app).listen(PORT, () => {
   console.log(`Server listening at port ${PORT}.`);
