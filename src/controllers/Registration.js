@@ -61,7 +61,7 @@ class Registration {
         }); // todo technically all calls to defaultDocSave should also be nested...
       });
     } catch (error) {
-      return next(error);
+      return res.status(500).send(`{"error": ${error.message}`);
     }
   }
 
@@ -87,7 +87,7 @@ class Registration {
 
       });
     } catch (error) {
-      return next(error);
+      return res.status(500).send(`{"error": ${error.message}`);
     }
   }
 
@@ -121,7 +121,7 @@ class Registration {
           });
       });
     } catch (error) {
-      return next(error);
+      return res.status(500).send(`{"error": ${error.toString()}`);
     }
   }
 
@@ -143,7 +143,7 @@ class Registration {
         }
       });
     } catch (error) {
-      return next(error);
+      return res.status(500).send(`{"error": ${error.message}`);
     }
   }
 
@@ -152,7 +152,7 @@ class Registration {
   // not for this controller...
   static findPatientFromPhone(phoneNumber, idOnly, next) {
     PatientModel.findOne({phone_number: phoneNumber}, (err, patient) => {
-      // if(err) throw err;
+      if (err) throw err;
       if (idOnly) {
         next(patient.id);
       }
@@ -162,7 +162,7 @@ class Registration {
 
   static findDocFromId(id, model, next) {
     model.findById(id, (err, doc) => {
-      //  todo if err do something
+      if (err) throw err;
       next(doc);
     });
   }
@@ -172,14 +172,14 @@ class Registration {
     ConsultationModel.findOne(query,
         "organization practitioner active patient",
         function (err, consultation) {
-          // if (err) return throw err;
+          if (err) throw err;
           next(consultation);
         });
   }
 
   static findOrgIdFromPractitionerId(practitionerId, next) {
     PractitionerModel.findById(practitionerId, (err, practitioner) => {
-      // if (err) return throw err;
+      if (err) throw err;
       next(practitioner.organization);
     });
   }
