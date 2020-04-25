@@ -79,8 +79,9 @@ class Registration {
               Registration.defaultDocSave(consultation, () => {
                 return res.status(200).send(`{"patient": ${patient}, "consultation": ${consultation}}`);
               });
+            } else {
+              return res.status(200).send(`{"patient": ${patient}}`);
             }
-            return res.status(200).send(`{"patient": ${patient}}`);
           });
         });
 
