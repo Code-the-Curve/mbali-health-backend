@@ -24,6 +24,8 @@ class TestDataCreator {
     // this.createPatient(patientId1, 'pd');
     // this.createPatient(patientId2, 'pe');
     // this.createPatient(patientId3, 'paa');
+    // const consId = mongoose.Types.ObjectId('678df3efb618f5141202a19c');
+    // this.createConsultation(consId, patientId3, null, orgId2, true);
   }
 
   static getPatientFromId(req, res, next) {
@@ -91,12 +93,25 @@ class TestDataCreator {
     this.defaultDocSave(practitioner)
   }
 
+  static createConsultation(id, patientId, practId, orgId, active) {
+    const consultation = ConsultationModel({
+      practitioner : practId,
+      organization : orgId, //Somewhat breaking SSoT here, but it's going to be very expensive to query for all messages for an organization if we don't include
+      patient : patientId,
+      active : active,
+      messages : []
+    })
+    this.defaultDocSave(consultation)
+  }
+
+
   static defaultDocSave(document) {
     document.save((err) => {
       if (err) throw err;
       console.log(`SAVE SUCCESSFUL, id: ${document.id}`)
     });
   }
+
 
 
 }
