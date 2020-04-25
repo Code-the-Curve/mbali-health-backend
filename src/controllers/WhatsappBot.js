@@ -8,7 +8,7 @@ const {MessagingResponse} = twilio.twiml;
 
 class WhatsappBot {
 
-  static welcomePatient(req, res, next) {
+  static incomingMessage(req, res, next) {
     const twiml = new MessagingResponse();
     const q = req.body.Body;
 

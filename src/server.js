@@ -2,7 +2,17 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 
-import whatsAppRouter from './routes/Whatsapp.js';
+
+import http from 'http';
+import socket from 'socket.io';
+
+import whatsapp from './routes/Whatsapp.js';
+import wscontroller from './controllers/WebsocketController.js';
+import registration from './routes/Registration.js';
+import deregistration from './routes/Deregistration';
+
+//todo test only
+import TestDataCreator from "./controllers/TestDataCreator";
 
 const url = `mongodb://${process.env.MONGO_URI || 'mongo:27017'}/codethecurve`
 const PORT = process.env.HTTP_PORT || 8081;
@@ -26,13 +36,28 @@ app.use(
 
 app.use(express.json());
 
+
+// Routes
 app.use("/messaging/whatsapp", whatsAppRouter);
+//todo test only
+// TestDataCreator.createTestData()
+app.use('/register',registration);
+app.use('/deregister',deregistration);
 
-app.get('/', (req, res) => {
-  res.send('just gonna send it');
-});
-
-
-app.listen(PORT, () => {
+const server = http.createServer(app).listen(PORT, () => {
   console.log(`Server listening at port ${PORT}.`);
 });
+
+const io = socket(server);
+
+
+io.on('connection', client => {
+  client.on('join', (room, cb) => {
+    wscontroller.handleJoin(client, room, cb)
+  })
+
+  client.on('message', data => {
+    wscontroller.handleMessageReceived(client, data)
+  })
+
+})
