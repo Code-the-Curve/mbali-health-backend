@@ -45,12 +45,11 @@ class ConsultationController {
             content: { message }
         })
 
-        ConsultationModel.findOneAndUpdate(
+        return ConsultationModel.findOneAndUpdate(
             {_id: consultationId}, 
             {$push: { messages: messageDoc }},
             {upsert: true})
-        // .then(result =>  ))//console.log(`saved message ${message}`))
-        .catch(error => console.error(error))
+        
     }
 }
 

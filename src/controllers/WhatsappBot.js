@@ -109,19 +109,27 @@ class WhatsappBot {
   }
 
   static sendToConsultation(consultation, whatsappMessage) {
-    var message = whatsappMessage.Body
-    var from = whatsappMessage.From
-    var sent_ts = new Date() //TODO - replace this with whatsapp ts
-    console.log("Sending message " + message + " from " + from)
-    ConsultationController.saveMessage({from, message, sent_ts}, consultation._id)
-    WebsocketController.sendMessageToRoom(consultation._id, 
-      {consultation: consultation._id, 
-        msg: {
-          message,
-          from,
-          sent_ts
-        }
-      });
+    return new Promise((resolve, reject) => {
+      var message = whatsappMessage.Body
+      var from = whatsappMessage.From
+      var sent_ts = new Date() //TODO - replace this with whatsapp ts
+      console.log("Sending message " + message + " from " + from)
+      ConsultationController.saveMessage({from, message, sent_ts}, consultation._id)
+        .then(message => {
+          WebsocketController.sendMessageToRoom(consultation._id, 
+            {consultation: consultation._id, 
+              msg: {
+                message,
+                from,
+                sent_ts
+              }
+            });
+            resolve(message)
+          }).catch(error => {
+            console.log(error)
+            reject(error)
+        })
+    });
   }
 
   static sendMessage(req, res) {
