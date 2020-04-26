@@ -31,7 +31,7 @@ const ValidationSchema = mongoose.model('validation', {
 });
 
 const ResponseSchema = mongoose.model('response', {
-    value: String,
+    values: [String],
     description: String,
     points_to: mongoose.Schema.Types.ObjectId, 
 });
