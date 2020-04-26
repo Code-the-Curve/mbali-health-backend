@@ -7,6 +7,7 @@ import http from 'http';
 import socket from 'socket.io';
 
 import whatsAppRouter from './routes/Whatsapp.js';
+import messages from './routes/Consultation.js';
 import wscontroller from './controllers/WebsocketController.js';
 import registration from './routes/Registration.js';
 import deregistration from './routes/Deregistration';
@@ -43,6 +44,7 @@ app.use("/messaging/whatsapp", whatsAppRouter);
 // TestDataCreator.createTestData()
 app.use('/register',registration);
 app.use('/deregister',deregistration);
+app.use('/consultation', messages);
 
 const server = http.createServer(app).listen(PORT, () => {
   console.log(`Server listening at port ${PORT}.`);
