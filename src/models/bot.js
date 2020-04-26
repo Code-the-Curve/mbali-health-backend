@@ -47,5 +47,5 @@ export const BotMessageModel = mongoose.model('bot_message', {
     text: String,
     description: String,
     validation:[ValidationSchema], //validation on possible response. By default any responses that don't match the embedded responses will be rejected
-    responses: [ResponseSchema],
+    responses: [ResponseSchema]
 });
