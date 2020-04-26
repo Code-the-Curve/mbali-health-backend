@@ -53,8 +53,8 @@ const io = socket(server);
 
 
 io.on('connection', client => {
-  client.on('join', (room, cb) => {
-    wscontroller.handleJoin(client, room, cb)
+  client.on('join', room => {
+    wscontroller.handleJoin(client, room)
   })
 
   client.on('message', data => {
