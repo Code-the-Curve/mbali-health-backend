@@ -1,4 +1,4 @@
-import {PatientModel, PractitionerModel, OrganizationModel, Roles} from '../models/index.js';
+import {PatientModel, PractitionerModel, OrganizationModel} from '../models/index.js';
 import mongoose from "mongoose";
 import {ConsultationModel} from "../models/index";
 
@@ -40,20 +40,7 @@ class TestDataCreator {
       } catch (error) {
         return next(error);
       }
-    // });
   }
-  // static getPatientIdFromName(req, res, next) {
-  //   try {
-  //     const patientName = req.params.name;
-  //       PatientModel.findOne({name: {first_name: patientName, last_name : 'Patient'}},
-  //         function (err, patient) {
-  //           if (err) return console.log(`ERROR :(((: ${err}`);
-  //           return res.status(200).send(`patient id: ${patient.id}`);
-  //         })
-  //   } catch (error) {
-  //     return next(error);
-  //   }
-  // }
 
   static createPatient(id, firstName, phone_number, orgId ){
     console.log("Creating patient with name " + firstName + " and phone number " + phone_number)
@@ -105,16 +92,12 @@ class TestDataCreator {
     this.defaultDocSave(consultation)
   }
 
-
   static defaultDocSave(document) {
     document.save((err) => {
       if (err) throw err;
       console.log(`SAVE SUCCESSFUL, id: ${document.id}`)
     });
   }
-
-
-
 }
 
 export default TestDataCreator;

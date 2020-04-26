@@ -55,17 +55,14 @@ API:
 
 class Registration {
 
-  static registerPatientOrg(req, res, next) {
-    const orgId = req.body.organization;
-    const patientId = req.body.patient;
-    res.set('Content-Type', 'application/json');
+  static registerPatientOrg(orgId, patientId) {
     PatientModel.findById(patientId).then((patient) => {
       patient.organization = orgId;
       return patient.save()
     }).then( (patient) => {
-        return Api.okWithContent(res,{ patient });
-      }).catch ((error) => {
-        return Api.errorWithMessage(res, 500, error.message + '\n' + error.stack)
+        return patient;
+     }).catch ((error) => {
+        return null;
     });
   }
 
@@ -159,10 +156,6 @@ class Registration {
     return document.save();
   }
 
-  // not for this controller...
-  // static findPatientFromPhone(phoneNumber) {
-  //   return PatientModel.findOne({phone_number: phoneNumber})
-  // }
 }
 
 export default Registration;
