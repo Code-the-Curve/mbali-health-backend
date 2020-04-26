@@ -10,7 +10,7 @@ export const ValidationOperator = Object.freeze({
     GreaterThanOrEqualTo: 'gte',
     LessThanOrEqualTo : 'lte',
     Contains: 'contains'
-})
+});
 
 export const ContentTypes = Object.freeze({
     Location: 'location',
@@ -20,9 +20,9 @@ export const ContentTypes = Object.freeze({
     Video: 'video',
     Audio: 'audio',
     Document: 'document'
-})
+});
 
-export const ValidationSchema = mongoose.model('validation', {
+const ValidationSchema = mongoose.Schema({
     type: {
         type: String,
         enum: Object.values(ValidationOperator)
@@ -30,15 +30,22 @@ export const ValidationSchema = mongoose.model('validation', {
     value: mongoose.Mixed,
 });
 
-export const ResponseSchema = mongoose.model('response', {
+export const ValidationModel = mongoose.model('validation', ValidationSchema);
+
+const ResponseSchema = mongoose.Schema({
     values: [String],
     description: String,
-    points_to: mongoose.Schema.Types.ObjectId, 
+    points_to: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'bot_message'
+    }
 });
 
-export const BotMessageSchema = mongoose.model('bot_message', {
+export const ResponseModel = mongoose.model('response', ResponseSchema);
+
+export const BotMessageModel = mongoose.model('bot_message', {
     text: String,
     description: String,
-    validation:[validation], //validation on possible response. By default any responses that don't match the embedded responses will be rejected
+    validation:[ValidationSchema], //validation on possible response. By default any responses that don't match the embedded responses will be rejected
     responses: [ResponseSchema],
 });

@@ -14,7 +14,6 @@ import deregistration from './routes/Deregistration';
 
 //todo test only
 import TestDataCreator from "./controllers/TestDataCreator";
-import whatsAppRouter from './routes/Whatsapp.js';
 
 const url = `mongodb://${process.env.MONGO_URI || 'mongo:27017'}/codethecurve`
 const PORT = process.env.HTTP_PORT || 8081;
@@ -40,7 +39,6 @@ app.use(express.json());
 
 
 // Routes
-app.use("/messaging/whatsapp", whatsAppRouter);
 //todo test only
 // TestDataCreator.createTestData()
 app.use('/register',registration);
