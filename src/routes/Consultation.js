@@ -4,21 +4,21 @@ import Api from '../controllers/Api.js'
 
 const router = express.Router();
 
-router.get('/:uid', (req, res, next) => {
-    messageController.getAllConsultations(req.params.uid)
+router.get('/:practitionerId', (req, res, next) => {
+    messageController.getAllConsultations(req.params.practitionerId)
     .then(consultations => {
         if (consultations.length) {
             Api.okWithContent(res, consultations)
         } else {
-            Api.errorWithMessage(res, 404, `No consultation for id ${req.params.uid}`)
+            Api.errorWithMessage(res, 404, `No consultation for id ${req.params.practitionerId}`)
         }
     })
     .catch(error => Api.errorWithMessage(res, 500, error))
 })
 
-router.get('/:uid/:consultationId', (req, res, next) => {
-    const { uid, consultationId } = req.params;
-    messageController.getConsultationById(uid, consultationId)
+router.get('/:practitionerId/:consultationId', (req, res, next) => {
+    const { practitionerId, consultationId } = req.params;
+    messageController.getConsultationById(practitionerId, consultationId)
     .then(consultation => {
         if (consultation) { 
             Api.okWithContent(res, consultation)

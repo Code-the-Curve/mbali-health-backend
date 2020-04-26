@@ -1,11 +1,11 @@
 import { MessageModel, ConsultationModel, PractitionerModel } from "../models";
 
 class ConsultationController {
-    static getAllConsultations(uid) {
+    static getAllConsultations(practitionerId) {
         return new Promise((resolve, reject ) => {
-            PractitionerModel.findById(uid)
+            PractitionerModel.findById(practitionerId)
             .then(practitioner => {
-                if (!practitioner) reject(`Practitioner not found with id ${uid}`)
+                if (!practitioner) reject(`Practitioner not found with id ${practitionerId}`)
                 return ConsultationModel.find({ 
                     organization: practitioner.organization,
                     practitioner: { $in: [practitioner.id, null]}
@@ -17,13 +17,13 @@ class ConsultationController {
         })
     }
 
-    static getConsultationById(uid, id) {
+    static getConsultationById(practitionerId, consultationId) {
          return new Promise((resolve, reject ) => {
-            PractitionerModel.findById(uid)
+            PractitionerModel.findById(practitionerId)
             .then(practitioner => {
-                if (!practitioner) reject(`Practitioner not found with id ${uid}`)
+                if (!practitioner) reject(`Practitioner not found with id ${practitionerId}`)
                 return ConsultationModel.findOne({ 
-                    _id: id,
+                    _id: consultationId,
                     organization: practitioner.organization,
                     practitioner: { $in: [practitioner.id, null]}
                 })}, 
