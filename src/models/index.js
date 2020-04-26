@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 
 
 export const OrganizationModel = mongoose.model('organization', {
@@ -9,8 +9,8 @@ export const OrganizationModel = mongoose.model('organization', {
 		address : String,
 		city : String,
 		county: String,
-		lat : mongoose.Types.Decimal128,
-		long : mongoose.Types.Decimal128
+		lat : mongoose.Schema.Types.Decimal128,
+		long : mongoose.Schema.Types.Decimal128
 	}
 });
 

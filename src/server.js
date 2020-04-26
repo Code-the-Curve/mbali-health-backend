@@ -2,10 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 
+
 import http from 'http';
 import socket from 'socket.io';
 
-import whatsapp from './routes/Whatsapp.js';
+import whatsAppRouter from './routes/Whatsapp.js';
 import messages from './routes/Consultation.js';
 import wscontroller from './controllers/WebsocketController.js';
 import registration from './routes/Registration.js';
@@ -38,7 +39,7 @@ app.use(express.json());
 
 
 // Routes
-app.use(whatsapp);
+app.use("/messaging/whatsapp", whatsAppRouter);
 //todo test only
 // TestDataCreator.createTestData()
 app.use('/register',registration);
