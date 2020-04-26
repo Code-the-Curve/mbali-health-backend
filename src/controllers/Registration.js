@@ -4,7 +4,6 @@ import {ConsultationModel} from '../models/index.js';
 import Api from './Api'
 
 //todo error check the input ex if patient doesnt exist or missing body components
-// todo return 500 on other errors?
 /*
 API:
 * everything returns 200 for success (or no action taken).
@@ -17,9 +16,12 @@ API:
 * post to '/deregister/patient_org'
   body = {
     "patient": "String, patient id"
+    "organization": "String, org id",
   }
   returns:
-    - if there was no active consultation:
+    - if organization was not registered to patient:
+      STATUS 400, {"error": "patient id ${patientId} was not registered with organization ${orgId}"}
+    - else if there was no active consultation:
       {"patient": PatientModel}
     - else:
       {"patient": PatientModel, "consultation": ConsultationModel}
@@ -30,9 +32,14 @@ API:
     "practitioner": "String, practitioner id"
   }
   returns:
-    - if patient NOT already registered to a practitioner:
+    - if patient and practitioner's organization don't match:
+       STATUS 400, {"error": "patient org id ${patient.organization} does not match practitioner org id ${practitioner.organization}"}
+    - else if patient had no active waiting room consultation:
+      STATUS 400, {"error": "patient had no waiting room consultation."}
+    - else if patient NOT already registered to a practitioner:
       {"consultation": ConsultationModel}
-    - STATUS 400, {"error": "Bad request: patient with id ${patientId} is already registered with practitioner id ${consultation.practitioner} on active consultation id ${consultation.id}. No updates were performed."}
+    - else
+      STATUS 400, {"error": "Bad request: patient with id ${patientId} is already registered with practitioner id ${consultation.practitioner} on active consultation id ${consultation.id}. No updates were performed."}
 
 * post to '/deregister/patient_practitioner'
   body = {
@@ -49,179 +56,113 @@ API:
 class Registration {
 
   static registerPatientOrg(req, res, next) {
-    try {
-      const orgId = req.body.organization;
-      const patientId = req.body.patient;
-      res.set('Content-Type', 'application/json'); // TODO UPDATE REST
-      Registration.findDocFromId(patientId, PatientModel, (patient) => {
-        patient.organization = orgId;
-        Registration.defaultDocSave(patient, () => {
-          return Api.okWithContent(res,{ patient });
-        }); // todo technically all calls to defaultDocSave should also be nested...
-      });
-    } catch (error) {
-      return Api.errorWithMessage(res, 500, error.message)
-    }
+    const orgId = req.body.organization;
+    const patientId = req.body.patient;
+    res.set('Content-Type', 'application/json');
+    PatientModel.findById(patientId).then((patient) => {
+      patient.organization = orgId;
+      return patient.save()
+    }).then( (patient) => {
+        return Api.okWithContent(res,{ patient });
+      }).catch ((error) => {
+        return Api.errorWithMessage(res, 500, error.message + '\n' + error.stack)
+    });
   }
 
   static deregisterPatientOrg(req, res, next) {
-    try {
-      const patientId = req.body.patient;
-      const orgId = req.body.organization;
-      res.set('Content-Type', 'application/json');
-      Registration.findDocFromId(patientId, PatientModel, (patient) => {
-        if (patient.organization != orgId) {
-          return Api.errorWithMessage(res, 400, `patient id ${patientId} was not registered with organization ${orgId}`)
-        }
-        patient.organization = null;
-        Registration.defaultDocSave(patient, () => {
-          Registration.findActiveConsultation(patientId, null, (consultation) => {
-            if (consultation != null) {
-              consultation.active = false;
-              Registration.defaultDocSave(consultation, () => {
-                return Api.okWithContent(res, `{"patient": ${patient}, "consultation": ${consultation}}`);
-              });
-            } else {
-              return Api.okWithContent(res,{ patient });
-            }
-          });
-        });
-
-      });
-    } catch (error) {
-      return Api.errorWithMessage(res, 500, error.message)
-    }
+    const patientId = req.body.patient;
+    const orgId = req.body.organization;
+    let responsePatient;
+    res.set('Content-Type', 'application/json');
+    PatientModel.findById(patientId).then((patient) => {
+      if (patient.organization != orgId) {
+        return Api.errorWithMessage(res, 400, `patient id ${patientId} was not registered with organization ${orgId}`);
+      }
+       return patient;
+    }).then( (patient) => {
+      patient.organization = null;
+      return patient.save();
+    }).then((patient) => {
+      responsePatient = patient;
+      return Registration.findActiveConsultation(patientId)
+    }).then((consultation) => {
+      if (consultation != null) {
+        consultation.active = false;
+        return consultation.save()
+      }
+      return Api.okWithContent(res,`{"patient": ${JSON.stringify(responsePatient)}`);
+    }).then((consultation) => {
+      return Api.okWithContent(res, `{"patient": ${JSON.stringify(responsePatient)}, "consultation": ${JSON.stringify(consultation)}}`);
+    }).catch ((error) => {
+      return Api.errorWithMessage(res, 500, error.message + '\n' + error.stack)
+    });
   }
 
   static registerPatientPractitioner(req, res, next) {
-    try {
-      const patientId = req.body.patient;
-      const practitionerId = req.body.practitioner;
-      res.set('Content-Type', 'application/json');
-      Registration.findActiveConsultation(patientId, null, (consultation) => {
-          Registration.findOrgIdFromPractitionerId(practitionerId, (practOrgId) => {
-            Registration.findDocFromId(patientId, PatientModel, (patient) => {
-              if (patient.organization != practOrgId.toString()) {
-                return Api.errorWithMessage(res, 400, `patient org id ${patient.organization} does not match practitioner org id ${practOrgId}`)
-              } else if (consultation == null) {
-                return Api.errorWithMessage(res, 400, 'patient had no waiting room consultation.')
-              } else if (consultation.practitioner == null) {
-                consultation.practitioner = practitionerId;
-                Registration.defaultDocSave(consultation, () => {
-                  return Api.okWithContent(res, { consultation });
-                });
-              } else { // an active consultation exists, practitioner not null => patient already has practitioner
-                return Api.errorWithMessage(res, 400, `Bad request: patient with id ${patientId} is already registered with practitioner id ${consultation.practitioner} on active consultation id ${consultation.id}. No updates were performed.`)
-              }
-            })
-
-          });
-      });
-    } catch (error) {
-      return Api.errorWithMessage(res, 500, error.message)
-    }
+    const patientId = req.body.patient;
+    const practitionerId = req.body.practitioner;
+    res.set('Content-Type', 'application/json');
+    Promise.all([Registration.findOrgIdFromPractitionerId(practitionerId),
+                        PatientModel.findById(patientId)]).then(([practitioner, patient]) => {
+      if (practitioner.organization.toString() != patient.organization) {
+        return Api.errorWithMessage(res, 400, `patient org id ${patient.organization} does not match practitioner org id ${practitioner.organization}`)
+      }
+      return Registration.findActiveConsultation(patientId)
+    }).then((consultation) => {
+      if (consultation == null) {
+        return Api.errorWithMessage(res, 400, 'patient had no waiting room consultation.')
+      } else if (consultation.practitioner == null) {
+        consultation.practitioner = practitionerId;
+        return consultation.save()
+      }
+      // an active consultation exists, practitioner not null => patient already has practitioner
+      return Api.errorWithMessage(res, 400, `patient with id ${patientId} is already registered with practitioner id ${consultation.practitioner} on active consultation id ${consultation.id}.`)
+    }).then((consultation) => {
+      return Api.okWithContent(res, { consultation });
+    }).catch ((error) => {
+      return Api.errorWithMessage(res, 500, error.message + '\n' + error.stack)
+    });
   }
 
 //todo still a bit iffy about the difference between requests coming from the 2 sides.
 // verify that patient side does not have/need practitioner id
   static deregisterPatientPractitioner(req, res, next) {
-    try {
-      const patientId = req.body.patient;
-      const practitionerId = req.body.practitioner; // optional, only set if coming from practitioner/socket side
-      res.set('Content-Type', 'application/json');
-      Registration.findActiveConsultation(patientId, practitionerId, (consultation) => {
-        if (consultation != null && consultation.practitioner != null) {
-          consultation.active = false;
-          Registration.defaultDocSave(consultation, () => {
-            return Api.okWithContent(res, { consultation });
-          });
-        } else {
-          return Api.okWithContent(res,'{"message": "patient was not registered to practitioner. No updates performed."}');
-        }
-      });
-    } catch (error) {
-      return Api.errorWithMessage(res, 500, error.message)
-    }
+    const patientId = req.body.patient;
+    const practitionerId = req.body.practitioner; // optional, only set if coming from practitioner/socket side
+    res.set('Content-Type', 'application/json');
+    Registration.findActiveConsultation(patientId, practitionerId).then((consultation) => {
+      if (consultation != null && consultation.practitioner != null) {
+        consultation.active = false;
+        return consultation.save();
+      } else {
+        return Api.okWithMessage(res,'patient was not registered to practitioner. No updates performed.');
+      }
+    }).then((consultation) => {
+      return Api.okWithContent(res, { consultation });
+    }).catch ((error) => {
+      return Api.errorWithMessage(res, 500, error.message + '\n' + error.stack)
+    });
   }
 
   // helper methods
 
-  // not for this controller...
-  static findPatientFromPhone(phoneNumber, idOnly, next) {
-    PatientModel.findOne({phone_number: phoneNumber}, (err, patient) => {
-      if (err) throw err;
-      if (idOnly) {
-        next(patient.id);
-      }
-      next(patient);
-    })
-  }
-
-  static findDocFromId(id, model, next) {
-    model.findById(id, (err, doc) => {
-      if (err) throw err;
-      next(doc);
-    });
-  }
-
-  static findActiveConsultation(patientId, practitionerId, next) {
+  static findActiveConsultation(patientId, practitionerId) {
     const query = practitionerId == null ? { patient: patientId, active: true} : { patient: patientId, practitioner: practitionerId, active: true}
-    ConsultationModel.findOne(query,
-        "organization practitioner active patient",
-        function (err, consultation) {
-          if (err) throw err;
-          next(consultation);
-        });
+    return ConsultationModel.findOne(query, "organization practitioner active patient");
   }
 
-  static findOrgIdFromPractitionerId(practitionerId, next) {
-    PractitionerModel.findById(practitionerId, (err, practitioner) => {
-      if (err) throw err;
-      next(practitioner.organization);
-    });
+  static findOrgIdFromPractitionerId(practitionerId) {
+    return PractitionerModel.findById(practitionerId, "organization");
   }
 
-  static defaultDocSave(document, next) {
-    document.save((err) => {
-      if (err) throw err;
-      next();
-    });
+  static defaultDocSave(document) {
+    return document.save();
   }
 
-  /* todo flows
-    patient/whatsapp -> register to org -> { (assume patient, org id already obtained)
-      - find patient doc from id
-      - set org field on patient
-    }
-    pract/socket -> register to patient =  { (assume patient, pract id already obtained)
-      - Try to find active consultation
-        - if active consultation with pract = null (=waiting room) , set pract
-        - (shouldn't happen) if active consultation with pract already set:
-          - return 400, a practitioner was already set for user with pract id
-        - If none:
-          - find practitioner org from pract id
-          - create new consultation with pract, org, patient, active=true, messages =[], default accepted_timestamp
-    }
-    patient/whatsapp -> deregister from pract = { (assume already have patient id)
-      - Try to find active consultation
-        -  if none OR active consultation without pract, do nothing or maybe send message back
-        - else set active = false
-    }
-    pract/socket -> deregister from patient = { (assume patient, pract id, (consultation id???) already obtained)
-      - Get active consultation with pract
-        - set active = false
-    }
-    patient/whatsapp -> deregister from org = { (assume already have patient id)
-      - find patient doc from id
-      - set patient org to null
-      - Try to find active consultation
-        - if found, set active = false
-        - else do nothing
-    }
-    // skipping org -> deregister from patient for now
-    // for all: return 200 for success, 400 if bad request, 500 if other error
-
-   */
+  // not for this controller...
+  // static findPatientFromPhone(phoneNumber) {
+  //   return PatientModel.findOne({phone_number: phoneNumber})
+  // }
 }
 
 export default Registration;
