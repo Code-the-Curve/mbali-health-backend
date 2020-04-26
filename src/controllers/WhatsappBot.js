@@ -1,6 +1,9 @@
 import dotenv from 'dotenv';
 import twilio from 'twilio';
 import Api from './Api'
+import Registration from './Registration'
+import PatientsController from './PatientsController'
+import {PatientModel} from '../models/index.js';
 
 dotenv.config();
 
@@ -10,14 +13,39 @@ const {MessagingResponse} = twilio.twiml;
 class WhatsappBot {
 
   static incomingMessage(req, res, next) {
-    const twiml = new MessagingResponse();
     const content = req.body.Body;
-    const from = req.body.From
-    console.log(req.body)
+    const fromPhoneNumber = req.body.From
+    // console.log(req.body)
+    
+    PatientModel.findOne({
+      phone_number: fromPhoneNumber
+    }).then((patient) => { 
+        if (!patient) {
+          console.log("Creating patient with phone number " + fromPhoneNumber)
+          return PatientsController.createPatient(fromPhoneNumber)
+        }
+        return patient
+    }).then(patient => {
+        console.log(patient)
+        return Registration.findActiveConsultation(patient._id)
+    }).then(consultation => {
+        console.log(consultation)
+        if (consultation) {
+          WhatsappBot.sendToConsultation()   
+        } else {
+          WhatsappBot.sendToBot(req, res, next)
+        }
+    }).catch(error => {
+      console.log("Whoops! Something went wrong")
+      console.log(error)
+    });
+  }
 
+  static sendToBot(req, res, next) {
+    console.log("Starting bot flow")
+    const twiml = new MessagingResponse();
     try {
-
-      twiml.message(`Welcome to our service, please send us your location so we can better assist you`);
+      twiml.message(`Welcome to Mbali Health! We put you in touch with local care providers so you can speak to a medical professional without ever leaving your home! Continue?`);
 
       res.set('Content-Type', 'text/xml');
 
@@ -26,6 +54,11 @@ class WhatsappBot {
       return next(error);
     }
   }
+
+  static sendToConsultation() {
+    console.log("Sending to consultation")
+  }
+
 
   static sendMessage(req, res) {
     console.log(req.params)

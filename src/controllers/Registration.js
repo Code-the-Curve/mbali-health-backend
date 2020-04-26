@@ -79,7 +79,7 @@ class Registration {
         return Api.errorWithMessage(res, 400, `patient id ${patientId} was not registered with organization ${orgId}`);
       }
        return patient;
-    }).then( (patient) => {
+    }).then((patient) => {
       patient.organization = null;
       return patient.save();
     }).then((patient) => {
@@ -147,7 +147,7 @@ class Registration {
   // helper methods
 
   static findActiveConsultation(patientId, practitionerId) {
-    const query = practitionerId == null ? { patient: patientId, active: true} : { patient: patientId, practitioner: practitionerId, active: true}
+    const query = practitionerId ? { patient: patientId, active: true} : { patient: patientId, practitioner: practitionerId, active: true}
     return ConsultationModel.findOne(query, "organization practitioner active patient");
   }
 
