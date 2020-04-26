@@ -5,11 +5,9 @@ import Registration from './Registration'
 import PatientsController from './PatientsController'
 import WebsocketController from './WebsocketController'
 import ConsultationController from './ConsultationController'
-import {PatientModel} from '../models/index.js';
 import {OrganizationModel, PatientModel, ConsultationModel} from '../models/index';
 import {BotFlowProgressModel, BotMessageModel, BotMessageTypes} from "../models/bot";
 import BotDataCreator from "./BotDataCreator";
-import mongoose from "mongoose";
 
 dotenv.config();
 
