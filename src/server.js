@@ -37,6 +37,8 @@ app.use(
 
 app.use(express.json());
 
+// TestDataCreator.createTestData()
+
 
 // Routes
 app.use("/messaging/whatsapp", whatsAppRouter);

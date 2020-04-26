@@ -7,25 +7,25 @@ class TestDataCreator {
 
   // can only be run once if using hardcoded ids
   static createTestData() {
-    // const orgId1 = mongoose.Types.ObjectId('578df3efb618f5141202a191');
-    // const orgId2 = mongoose.Types.ObjectId('678df3efb618f5141202a191');
-    // const practId1 = mongoose.Types.ObjectId('a78df3efb618f5141202a191');
-    // const practId2 = mongoose.Types.ObjectId('b78df3efb618f5141202a191');
-    // const practId3 = mongoose.Types.ObjectId('c78df3efb618f5141202a191');
-    // this.createOrg(orgId1, 'ORG1');
-    // this.createOrg(orgId2, 'ORG2');
-    // this.createPractitioner(practId1,'pract1', orgId1, Roles.Nurse);
-    // this.createPractitioner(practId2,'pract2', orgId1, Roles.MedicalOfficer);
-    // this.createPractitioner(practId3,'pract3', orgId2, Roles.ClinicalOfficer);
-    // const patientId1 = mongoose.Types.ObjectId('d78df3efb618f5141202a191');
-    // const patientId2 = mongoose.Types.ObjectId('e78df3efb618f5141202a191');
-    // const patientId3 = mongoose.Types.ObjectId('aa8df3efb618f5141202a191');
-    //
-    // this.createPatient(patientId1, 'pd');
-    // this.createPatient(patientId2, 'pe');
-    // this.createPatient(patientId3, 'paa');
-    // const consId = mongoose.Types.ObjectId('678df3efb618f5141202a19c');
-    // this.createConsultation(consId, patientId3, null, orgId2, true);
+    const orgId1 = mongoose.Types.ObjectId('578df3efb618f5141202a191');
+    const orgId2 = mongoose.Types.ObjectId('678df3efb618f5141202a191');
+    const practId1 = mongoose.Types.ObjectId('a78df3efb618f5141202a191');
+    const practId2 = mongoose.Types.ObjectId('b78df3efb618f5141202a191');
+    const practId3 = mongoose.Types.ObjectId('c78df3efb618f5141202a191');
+    this.createOrg(orgId1, 'ORG1');
+    this.createOrg(orgId2, 'ORG2');
+    this.createPractitioner(practId1,'pract1', orgId1, Roles.Nurse);
+    this.createPractitioner(practId2,'pract2', orgId1, Roles.MedicalOfficer);
+    this.createPractitioner(practId3,'pract3', orgId2, Roles.ClinicalOfficer);
+    const patientId1 = mongoose.Types.ObjectId('d78df3efb618f5141202a191');
+    const patientId2 = mongoose.Types.ObjectId('e78df3efb618f5141202a191');
+    const patientId3 = mongoose.Types.ObjectId('aa8df3efb618f5141202a191');
+    
+    this.createPatient(patientId1, 'Sam W', 'whatsapp:+254727347491');
+    this.createPatient(patientId2, 'Sam Y', 'whatsapp:+16479187445');
+    this.createPatient(patientId3, 'Lily', 'whatsapp:+14384087655');
+    const consId = mongoose.Types.ObjectId('678df3efb618f5141202a19c');
+    this.createConsultation(consId, patientId3, null, orgId2, true);
   }
 
   static getPatientFromId(req, res, next) {
@@ -55,14 +55,15 @@ class TestDataCreator {
   //   }
   // }
 
-  static createPatient(id, firstName, orgId){
+  static createPatient(id, firstName, phone_number, orgId ){
+    console.log("Creating patient with name " + firstName + " and phone number " + phone_number)
     const patient = PatientModel({
       _id: id,
       name: {
         first_name : firstName,
         last_name : 'Patient'
       },
-      phone_number: '234',
+      phone_number: phone_number,
       organization: orgId
     })
     this.defaultDocSave(patient)

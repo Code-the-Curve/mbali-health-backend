@@ -3,6 +3,7 @@ import twilio from 'twilio';
 import Api from './Api'
 import Registration from './Registration'
 import PatientsController from './PatientsController'
+import ConsultationController from './ConsultationController'
 import {PatientModel} from '../models/index.js';
 
 dotenv.config();
@@ -31,7 +32,7 @@ class WhatsappBot {
     }).then(consultation => {
         console.log(consultation)
         if (consultation) {
-          WhatsappBot.sendToConsultation()   
+          WhatsappBot.sendToConsultation(consultation, req.body)   
         } else {
           WhatsappBot.sendToBot(req, res, next)
         }
@@ -55,8 +56,19 @@ class WhatsappBot {
     }
   }
 
-  static sendToConsultation() {
-    console.log("Sending to consultation")
+  static sendToConsultation(consultation, message) {
+    content = message.Body
+    from = message.From
+    sent_ts = Date.now() //TODO - replace this with whatsapp ts
+    ConsultationController.saveMessage({from, message, sent_ts}, consultation._id)
+    ConsultationController.sendMesageToRoom(consultation._id, 
+      {consultation: consultation._id, 
+        msg: {
+          content,
+          from,
+          sent_ts
+        }
+      });
   }
 
 
