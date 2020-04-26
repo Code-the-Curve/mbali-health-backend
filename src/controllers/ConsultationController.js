@@ -38,7 +38,6 @@ class ConsultationController {
     // Assumption the consultation already exists
     static saveMessage(data, consultationId) {
         const { from, message, sent_ts} = data;
-
         const messageDoc = MessageModel({
             sent_ts,
             from,
@@ -46,9 +45,12 @@ class ConsultationController {
             content: { message }
         })
 
-        ConsultationModel.update(
-            {id: consultationId}, 
-            {$push: { messages: messageDoc }})
+        ConsultationModel.findOneAndUpdate(
+            {_id: consultationId}, 
+            {$push: { messages: messageDoc }},
+            {upsert: true})
+        .then(result => console.log(`saved message ${message}`))
+        .catch(error => console.error(error))
     }
 }
 
