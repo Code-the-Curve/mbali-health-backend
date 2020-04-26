@@ -49,7 +49,7 @@ class ConsultationController {
             {_id: consultationId}, 
             {$push: { messages: messageDoc }},
             {upsert: true})
-        .then(result => console.log(`saved message ${message}`))
+        // .then(result =>  ))//console.log(`saved message ${message}`))
         .catch(error => console.error(error))
     }
 }

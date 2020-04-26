@@ -147,7 +147,7 @@ class Registration {
   // helper methods
 
   static findActiveConsultation(patientId, practitionerId) {
-    const query = practitionerId ? { patient: patientId, active: true} : { patient: patientId, practitioner: practitionerId, active: true}
+    const query = !practitionerId ? { patient: patientId, active: true} : { patient: patientId, practitioner: practitionerId, active: true}
     return ConsultationModel.findOne(query, "organization practitioner active patient");
   }
 

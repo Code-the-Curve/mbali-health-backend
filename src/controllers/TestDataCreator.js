@@ -12,20 +12,20 @@ class TestDataCreator {
     const practId1 = mongoose.Types.ObjectId('a78df3efb618f5141202a191');
     const practId2 = mongoose.Types.ObjectId('b78df3efb618f5141202a191');
     const practId3 = mongoose.Types.ObjectId('c78df3efb618f5141202a191');
-    this.createOrg(orgId1, 'ORG1');
-    this.createOrg(orgId2, 'ORG2');
-    this.createPractitioner(practId1,'pract1', orgId1, Roles.Nurse);
-    this.createPractitioner(practId2,'pract2', orgId1, Roles.MedicalOfficer);
-    this.createPractitioner(practId3,'pract3', orgId2, Roles.ClinicalOfficer);
+    // this.createOrg(orgId1, 'ORG1');
+    // this.createOrg(orgId2, 'ORG2');
+    // this.createPractitioner(practId1,'pract1', orgId1, Roles.Nurse);
+    // this.createPractitioner(practId2,'pract2', orgId1, Roles.MedicalOfficer);
+    // this.createPractitioner(practId3,'pract3', orgId2, Roles.ClinicalOfficer);
     const patientId1 = mongoose.Types.ObjectId('d78df3efb618f5141202a191');
     const patientId2 = mongoose.Types.ObjectId('e78df3efb618f5141202a191');
     const patientId3 = mongoose.Types.ObjectId('aa8df3efb618f5141202a191');
     
-    this.createPatient(patientId1, 'Sam W', 'whatsapp:+254727347491');
-    this.createPatient(patientId2, 'Sam Y', 'whatsapp:+16479187445');
-    this.createPatient(patientId3, 'Lily', 'whatsapp:+14384087655');
+    // this.createPatient(patientId1, 'Sam W', 'whatsapp:+254727347491');
+    // this.createPatient(patientId2, 'Sam Y', 'whatsapp:+16479187445');
+    // this.createPatient(patientId3, 'Lily', 'whatsapp:+14384087655');
     const consId = mongoose.Types.ObjectId('678df3efb618f5141202a19c');
-    this.createConsultation(consId, patientId3, null, orgId2, true);
+    this.createConsultation(consId, '5ea4f799b318f803a13eb334', null, orgId2, true);
   }
 
   static getPatientFromId(req, res, next) {

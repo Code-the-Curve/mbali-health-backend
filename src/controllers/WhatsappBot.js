@@ -3,6 +3,7 @@ import twilio from 'twilio';
 import Api from './Api'
 import Registration from './Registration'
 import PatientsController from './PatientsController'
+import WebsocketController from './WebsocketController'
 import ConsultationController from './ConsultationController'
 import {PatientModel} from '../models/index.js';
 
@@ -16,7 +17,7 @@ class WhatsappBot {
   static incomingMessage(req, res, next) {
     const content = req.body.Body;
     const fromPhoneNumber = req.body.From
-    // console.log(req.body)
+    console.log(req.body)
     
     PatientModel.findOne({
       phone_number: fromPhoneNumber
@@ -56,15 +57,16 @@ class WhatsappBot {
     }
   }
 
-  static sendToConsultation(consultation, message) {
-    content = message.Body
-    from = message.From
-    sent_ts = Date.now() //TODO - replace this with whatsapp ts
+  static sendToConsultation(consultation, whatsappMessage) {
+    var message = whatsappMessage.Body
+    var from = whatsappMessage.From
+    var sent_ts = new Date() //TODO - replace this with whatsapp ts
+    console.log("Sending message " + message + " from " + from)
     ConsultationController.saveMessage({from, message, sent_ts}, consultation._id)
-    ConsultationController.sendMesageToRoom(consultation._id, 
+    WebsocketController.sendMessageToRoom(consultation._id, 
       {consultation: consultation._id, 
         msg: {
-          content,
+          message,
           from,
           sent_ts
         }
