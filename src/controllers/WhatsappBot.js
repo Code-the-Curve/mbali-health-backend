@@ -31,9 +31,9 @@ class WhatsappBot {
         }
         return patient
     }).then(patient => {
-        console.log(patient)
-        patient_ = patient
-        return Registration.findActiveConsultation(patient._id)
+        // console.log(patient)
+        // patient_ = patient
+        return { _id: '5ea4cb0df8c3d30028614a74'}//Registration.findActiveConsultation(patient._id)
     }).then(consultation => {
         console.log(consultation)
         if (consultation) {
@@ -118,11 +118,7 @@ class WhatsappBot {
         .then(message => {
           WebsocketController.sendMessageToRoom(consultation._id, 
             {consultation: consultation._id, 
-              msg: {
-                message,
-                from,
-                sent_ts
-              }
+              msg: message
             });
             resolve(message)
           }).catch(error => {
