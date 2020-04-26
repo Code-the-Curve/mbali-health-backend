@@ -22,7 +22,7 @@ export const ContentTypes = Object.freeze({
     Document: 'document'
 })
 
-const ValidationSchema = mongoose.model('validation', {
+export const ValidationSchema = mongoose.model('validation', {
     type: {
         type: String,
         enum: Object.values(ValidationOperator)
@@ -30,13 +30,13 @@ const ValidationSchema = mongoose.model('validation', {
     value: mongoose.Mixed,
 });
 
-const ResponseSchema = mongoose.model('response', {
+export const ResponseSchema = mongoose.model('response', {
     values: [String],
     description: String,
     points_to: mongoose.Schema.Types.ObjectId, 
 });
 
-const BotMessageSchema = mongoose.model('bot_message', {
+export const BotMessageSchema = mongoose.model('bot_message', {
     text: String,
     description: String,
     validation:[validation], //validation on possible response. By default any responses that don't match the embedded responses will be rejected
