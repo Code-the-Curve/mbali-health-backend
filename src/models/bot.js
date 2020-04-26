@@ -23,7 +23,11 @@ export const ContentTypes = Object.freeze({
 });
 
 export const BotMessageTypes = Object.freeze({
+    Start: 'start',
     OrganizationChoice: 'organization_choice',
+    FirstName: 'first_name',
+    LastName: 'last_name',
+    ResponseNotFound: 'response_not_found',
     Normal: 'normal'
 });
 
@@ -63,13 +67,18 @@ export const BotMessageModel = mongoose.model('bot_message', {
     } // quick and dirty way to set a special way to deal with this message
 });
 
-export const OrganizationChoices = mongoose.Schema({
+export const BotFlowProgressModel = mongoose.model('bot_flow_progress', {
     patient:  {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'patient'
     },
-    organizations: [{
+    current_message: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'organization'
+        ref: 'bot_message'
+    },
+    organization_options: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'organization',
+        default: []
     }]
 });

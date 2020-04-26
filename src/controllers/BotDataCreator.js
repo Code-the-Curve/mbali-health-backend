@@ -24,9 +24,10 @@ class BotDataCreator {
     const rOrgId = mongoose.Types.ObjectId('edddd3efb618f5141202a191');
     const rProblemId = mongoose.Types.ObjectId('effff3efb618f5141202a191');
 
-    const org1Id = mongoose.Types.ObjectId('ddddd1ddd618f5141202a191');
-    const org2Id = mongoose.Types.ObjectId('ddddd2ddd618f5141202a191');
-    const org3Id = mongoose.Types.ObjectId('ddddd3ddd618f5141202a191');
+    const orgIds = this.getHardCodedOrgIds();
+    const org1Id = mongoose.Types.ObjectId(orgIds[0]);
+    const org2Id = mongoose.Types.ObjectId(orgIds[1]);
+    const org3Id = mongoose.Types.ObjectId(orgIds[2]);
 
     // consent
     const rConsentYesChoices = ['Yes', 'Y', '1'];
@@ -38,16 +39,16 @@ class BotDataCreator {
         'so you can speak to a medical professional without ever leaving your home! Continue?' +
         "\nPlease reply with :\n" +
         `    - ${BotDataCreator.getChoicesStr(rConsentYesChoices)} if you would like to continue \n` +
-        `    - ${BotDataCreator.getChoicesStr(rConsentNoChoices)} if you do not`
-    [rConsentYes, rConsentNo]);
+        `    - ${BotDataCreator.getChoicesStr(rConsentNoChoices)} if you do not`,
+    [rConsentYes, rConsentNo], BotMessageTypes.Start);
     //todo null response = end of bot flow;
     this.createBotMessage(botRefusedId,'Boo, so sad to see you go :(.', null);
 
     // name
     const rFName = this.createPatientResponse(rFNameId, [], botLNameId); //[]  = free form
-    this.createBotMessage(botFNameId,'Please tell us your first name.',[rFName]);
+    this.createBotMessage(botFNameId,'Please tell us your first name.',[rFName], BotMessageTypes.FirstName);
     const rLName = this.createPatientResponse(rLNameId, [], botLocationId);
-    this.createBotMessage(botLNameId,'Please tell us your last name.',[rLName]);
+    this.createBotMessage(botLNameId,'Please tell us your last name.',[rLName], BotMessageTypes.LastName);
 
     // location
     const rLocation = this.createPatientResponse(rLocationId, [], botOrgId); // not really free form, need to later implement validation
@@ -64,13 +65,17 @@ class BotDataCreator {
         [rOrg], BotMessageTypes.OrganizationChoice);
 
     // problem
-    const rProblem = this.createPatientResponse(rProblemId, [], null); // not really free form, need to later implement validation
+    // const rProblem = this.createPatientResponse(rProblemId, [], null); // not really free form, need to later implement validation
     //todo include instructions
     this.createBotMessage(botProblemId,'Please share your concerns or symptoms with us. A practitioner will soon be reaching out.',
-        [rProblem]);
+        null);
 
     // response not in choices => respond with this but don't update patient "bookmark"
-    this.createBotMessage(botNotFoundId,'Sorry, please try again.',[]); // [] responses = special for invalid response message
+    this.createBotMessage(botNotFoundId,'Sorry, please try again.',[], BotDataCreator.ResponseNotFound); // [] responses = special for invalid response message
+  }
+
+  static getHardCodedOrgIds() {
+    return ['ddddd1ddd618f5141202a191', 'ddddd2ddd618f5141202a191', 'ddddd3ddd618f5141202a191']
   }
 
   static createPatientResponse(id, values, pointsToId){
