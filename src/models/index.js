@@ -64,7 +64,7 @@ export const PatientModel = mongoose.model('patient', {
 const MessageSchema = mongoose.Schema({
     sent_ts: Date,
     received_ts: Date,
-    to: mongoose.Schema.Types.ObjectId, // no ref checking because can be patient or practitioner
+    to: mongoose.Schema.Types.ObjectId, // CONSULTATION
     from: mongoose.Schema.Types.ObjectId, // no ref checking because can be patient or practitioner
     source_message : {
         type: mongoose.Schema.Types.ObjectId,
